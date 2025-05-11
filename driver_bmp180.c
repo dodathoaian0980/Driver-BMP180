@@ -1,33 +1,33 @@
 #include <linux/module.h>
 #include <linux/fs.h>
-#include <linux/init.h>
 #include <linux/i2c.h>
 #include <linux/device.h>
 #include <linux/uaccess.h>
 #include <linux/delay.h>
 #include <linux/cdev.h>
+#include <linux/init.h>
+#include <linux/module.h>
 
 #define DRIVER_NAME "bmp180_driver"
 #define CLASS_NAME "bmp180"
 #define DEVICE_NAME "bmp180"
 
 
-#define BMP_I2C_ADDRESS 0x77
-#define BMP180_E2PROM_1_REG 0xAA
-#define BMP180_CTRL_MEAS_REG 0xF4
-#define BMP180_MSB_REG 0xF6
-#define BMP180_CHIP_ID     0xD0
-#define BMP180_TEMP_MEAS 0x2E
-#define BMP180_PRESS_MEAS 0x34
-#define BMP180_E2PROM_DATA_LENGTH 22
-#define DELAY 5
+#define BMP_I2C_ADDRESS             0x77
+#define BMP180_E2PROM_1_REG         0xAA
+#define BMP180_CTRL_MEAS_REG        0xF4
+#define BMP180_MSB_REG              0xF6
+#define BMP180_CHIP_ID              0xD0
+#define BMP180_TEMP_MEAS            0x2E
+#define BMP180_PRESS_MEAS           0x34
+#define BMP180_E2PROM_DATA_LENGTH   22
+#define DELAY                       5
 
 // // IOCTL commands
 #define BMP180_IOCTL_MAGIC 'b'
 #define BMP180_IOCTL_TEMPERATURE _IOR(BMP180_IOCTL_MAGIC,1, int)
 #define BMP180_IOCTL_PRESSURE _IOR(BMP180_IOCTL_MAGIC,2, int)
 #define BMP180_IOCTL_SET_OSS _IOW(BMP180_IOCTL_MAGIC,3, int)
-#define BMP180_IOCTL_ALTITUDE _IOR(BMP180_IOCTL_MAGIC,4, int)
 
 static struct i2c_client *bmp180_client;
 static struct class* bmp180_class = NULL;
@@ -198,22 +198,6 @@ exit:
     return status;
 }
 
-/*
- * This function starts the altitude measurement and returns the value in m.
- */
-static s32 bmp180_get_altitude(struct bmp180_data *data, unsigned int *altitude)
-{
-    const s32 P0=101325;
-    s32 P=0;
-    if(!data)
-        return -1;
-    if (bmp180_get_pressure(data, &P)!= 0)
-        return -EIO;
-/*this is a simplified linearized version of the barometric altitude formula */
-    *altitude = (P0-P)*843/10000;
-    return 0;
-}
-
 static long bmp180_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     int data;
@@ -239,12 +223,7 @@ static long bmp180_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             bmp_data->oversampling_setting = oss;
             pr_info("Set oversampling to %d\n", oss);
             break;
-        case BMP180_IOCTL_ALTITUDE:
-            bmp180_get_temperature(bmp_data, NULL);
-            bmp180_get_altitude(bmp_data,&data);
-            if (copy_to_user((int __user *)arg, &data, sizeof(data)))
-                return -EFAULT;
-            break;
+        
         default:
             return -EINVAL;
     }
@@ -373,7 +352,7 @@ static int __init bmp180_init(void)
     return i2c_add_driver(&bmp180_driver);
 }
 
-static void __exit mpu180_exit(void)
+static void __exit bmp180_exit(void)
 {
     printk( "exiting BMP180 driver\n");
     i2c_del_driver(&bmp180_driver);
@@ -384,4 +363,4 @@ module_exit(bmp180_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("HoaiAn,PhucNguyen,SyNguyen,NamTin");
-MODULE_DESCRIPTION("Writing a driver for the BMP180 sensor module");
+MODULE_DESCRIPTION("Writing a driver for the BMP180 sensor module (without altitude)");
