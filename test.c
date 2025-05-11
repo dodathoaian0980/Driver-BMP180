@@ -1,9 +1,9 @@
-  #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <errno.h> // Include errno header
+#include <errno.h> 
 
 #define DEVICE_PATH "/dev/bmp180"
 #define OSS 3
@@ -12,7 +12,6 @@
 #define BMP180_IOCTL_TEMPERATURE _IOR(BMP180_IOCTL_MAGIC,1, int)
 #define BMP180_IOCTL_PRESSURE _IOR(BMP180_IOCTL_MAGIC,2, int)
 #define BMP180_IOCTL_SET_OSS _IOW(BMP180_IOCTL_MAGIC,3, int) 
-#define BMP180_IOCTL_ALTITUDE _IOR(BMP180_IOCTL_MAGIC,4, int)
 
 int main() {
     int fd;
